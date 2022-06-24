@@ -4,7 +4,6 @@ const cookieParser = require('cookie-parser')
 const { MongoClient } = require('mongodb');
 const uuid = require('uuid')
 const { get } = require('lodash');
-const { reset } = require('nodemon');
 
 const port = 3000
 const app = express()
@@ -57,6 +56,13 @@ function parseReferer(urlString) {
   }
 }
 
+function sendValidationError(res, message, debugInfo = {}) {
+  log(message, debugInfo);
+  const error = { message, ...debugInfo }
+  res.status(400);
+  res.json({ errors: [error] })
+}
+
 app.get('/track', async (req, res) => {
   // Get referer and cookie and log request
   const timestamp = new Date()
@@ -104,11 +110,51 @@ app.get('/track', async (req, res) => {
 if (process.env.NODE_ENV !== 'production') {
   app.get('/trackingEvents', async (req, res) => {
     const query = {}
-    const options = { sort: { timestamp: -1 } }
+    const options = { sort: { timestamp: -1 }, limit: 100 }
     const trackingEvents = await db.collection('trackingEvents').find(query, options).toArray()
     res.json({ trackingEvents })
   })
 }
+
+app.get('/trackingReport', async (req, res) => {
+  // Parse date range
+  const timeRangeKeys = ['from', 'to']
+  const timeRange = {}
+  for (const key of timeRangeKeys) {
+    const dateString = req.query[key]
+    const dateNumber = Date.parse(dateString) // an invalid date will yield NaN which is falsy
+    if (!dateNumber) {
+      sendValidationError(res, `missing or invalid time range query param`, { key, value: dateString })
+      return
+    }
+    timeRange[key] = new Date(dateNumber)
+  }
+  if (timeRange.from >= timeRange.to) {
+    sendValidationError(res, 'invalid time range - from needs to be less than to', { timeRange })
+    return
+  }
+
+  // Execute database query
+  // See: https://stackoverflow.com/questions/24761266/select-group-by-count-and-distinct-count-in-same-mongodb-query
+  const options = { allowDiskUse: true }
+  const pipeline = [
+    { $match: { timestamp: { $gt: timeRange.from, $lt: timeRange.to } } },
+    { $group: {
+      _id: { url: '$url', userId: '$userId' },
+      count: { $sum: 1 }
+    }},
+    { $group: {
+      _id: '$_id.url',
+      pageViews: { $sum: '$count' },
+      visitors: { $sum: 1 },
+    }},
+  ]
+  log('generating tracking report', { pipeline })
+  const report = await db.collection(COLLECTION_NAME).aggregate(pipeline, options).toArray()
+
+  // Send response
+  res.json({ report })
+})
 
 async function startServer() {
   let mongoUrl = MONGO_URL
@@ -122,24 +168,6 @@ async function startServer() {
   log('connecting to database', { mongoUrl })
   await client.connect()
   db = client.db()
-
-  // const TEST_DATA = [
-  //   { timestamp: new Date('2013-09-01 09:00:00'), url: '/contact.html', userId: 12345 },
-  //   { timestamp: new Date('2013-09-01 09:00:00'), url: '/contact.html', userId: 12346  },
-  //   { timestamp: new Date('2013-09-01 10:00:00'), url: '/contact.html', userId: 12345  },
-  //   { timestamp: new Date('2013-09-01 10:01:00'), url: '/about.html', userId: 12347  },
-  //   { timestamp: new Date('2013-09-01 11:00:00'), url: '/contact.html', userId: 12347  },
-  // ]
-  // for (const trackingEvent of TEST_DATA) {
-  //   log('creating test data', { trackingEvent })
-  //   await db.collection('trackingEvents').insertOne(trackingEvent)
-  // }
-  // const result = await db.collection('trackingEvents').aggregate([
-  //   // { $match: {} }, // TODO: date range
-  //   { $group: { _id: { timestamp: '$timestamp', url: '$url' }, pageViews: { $sum: 1 } } },
-  // ], { allowDiskUse: true }).toArray()
-  // // const result = await db.collection('trackingEvents').find({}).toArray()
-  // log('query result', { result })
 
   app.listen(port, () => {
     console.log(`tracking-pixel app listening on port ${port}`)

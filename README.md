@@ -42,21 +42,27 @@ Getting the tracking pixel from the command line (with/without cookie):
 
 ```sh
 # First visit without cookie:
-curl -i -o - -H 'Referer: http://localhost:8080/test/page1.html' http://localhost:3000/track
-# Set-Cookie: _track=8b93316c-5b1b-4a05-9603-115ea81fb330; Max-Age=43200; Path=/; Expires=Fri, 24 Jun 2022 20:36:35 GMT; HttpOnly
+curl -i -o - -H 'Referer: http://localhost:8080/test/contact.html' http://localhost:3000/track
+# Set-Cookie: _track=ce3be6d4-cc1d-4375-89a6-7da37ae5646f; Max-Age=43200; Path=/; Expires=Sat, 25 Jun 2022 02:31:06 GMT; HttpOnly
 
 # Repeat visit with cookie:
-curl -i -o - -H 'Referer: http://localhost:8080/test/page1.html' --cookie "_track=8b93316c-5b1b-4a05-9603-115ea81fb330" -o /dev/null http://localhost:3000/track
+curl -i -o - -H 'Referer: http://localhost:8080/test/contact.html' --cookie "_track=ce3be6d4-cc1d-4375-89a6-7da37ae5646f" -o /dev/null http://localhost:3000/track
 ```
 
 Test HTML page:
 
 ```sh
 npm run dev-static
-open http://localhost:8080/test/page1.html
+open http://localhost:8080/test/about.html
 ```
 
-Show tracking events in the database (development feature only):
+Tracking report endpoint:
+
+```sh
+curl "http://localhost:3000/trackingReport?from=2022-06-24&to=2022-06-25" | jq .
+```
+
+Show listing of recent tracking events in the database (used to expose in-memory database data during development):
 
 ```sh
 curl http://localhost:3000/trackingEvents | jq .
