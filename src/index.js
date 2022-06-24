@@ -153,7 +153,7 @@ app.get('/trackingReport', async (req, res) => {
   const report = await db.collection(COLLECTION_NAME).aggregate(pipeline, options).toArray()
 
   // Send response
-  res.json({ report })
+  res.json({ timeRange, report })
 })
 
 async function startServer() {

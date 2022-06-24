@@ -59,7 +59,10 @@ open http://localhost:8080/test/about.html
 Tracking report endpoint:
 
 ```sh
+# Time range of one day
 curl "http://localhost:3000/trackingReport?from=2022-06-24&to=2022-06-25" | jq .
+# Time range of one minute
+curl "http://localhost:3000/trackingReport?from=2022-06-24T20:16:00.000Z&to=2022-06-24T20:17:00.000Z" | jq .
 ```
 
 Show listing of recent tracking events in the database (used to expose in-memory database data during development):
