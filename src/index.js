@@ -58,7 +58,7 @@ function parseReferer(urlString) {
 }
 
 app.get('/track', async (req, res) => {
-  // Log request
+  // Get referer and cookie and log request
   const timestamp = new Date()
   const referer = req.get('Referer')
   const url = parseReferer(referer)
@@ -78,7 +78,10 @@ app.get('/track', async (req, res) => {
   try {
     await db.collection(COLLECTION_NAME).insertOne({ timestamp, url, userId })
   } catch (err) {
-    logError('error thrown saving to db', { timestamp, url, userId });
+    const errorMessage = 'error thrown saving to db'
+    logError(errorMessage, { timestamp, url, userId });
+    res.status(500);
+    res.end(errorMessage)
   }
 
   // Set cookie in response if not already set
