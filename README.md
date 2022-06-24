@@ -1,17 +1,13 @@
-# tracking-pixel
+# Tracking Pixel API
+
+A minimal implementation of a Node.js tracking pixel API with a MongoDB database. This API is not production ready, it's for learning purposes only.
 
 ## TODO
 
-* Referrer
-  https://developer.chrome.com/blog/referrer-policy-new-chrome-default/#:~:text=%23%20What%20does%20this%20change%20mean,the%20path%20and%20query%20string.
-  https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy#integration_with_html
-* Get/set cookie
-  https://stackoverflow.com/questions/16209145/how-can-i-set-cookie-in-node-js-using-express-framework
-  Set-Cookie: _track=2022-06-22T19%3A16%3A16.816Z; Max-Age=43200; Path=/; Expires=Thu, 23 Jun 2022 07:16:16 GMT; HttpOnly
-* Log requests
 * CLI
   MongoDB aggregations
 * Unit tests
+* End-to-end tests
 * TypeScript?
 * What are the interesting considerations in this app?
 
@@ -46,11 +42,11 @@ Getting the tracking pixel from the command line (with/without cookie):
 
 ```sh
 # First visit without cookie:
-curl -i -o - /dev/null http://localhost:3000/track
+curl -i -o - -H 'Referer: http://localhost:8080/test/page1.html' http://localhost:3000/track
 # Set-Cookie: _track=8b93316c-5b1b-4a05-9603-115ea81fb330; Max-Age=43200; Path=/; Expires=Fri, 24 Jun 2022 20:36:35 GMT; HttpOnly
 
 # Repeat visit with cookie:
-curl -i -o - --cookie "_track=8b93316c-5b1b-4a05-9603-115ea81fb330" -o /dev/null http://localhost:3000/track
+curl -i -o - -H 'Referer: http://localhost:8080/test/page1.html' --cookie "_track=8b93316c-5b1b-4a05-9603-115ea81fb330" -o /dev/null http://localhost:3000/track
 ```
 
 Test HTML page:
@@ -72,3 +68,10 @@ Checking tracking events directly in the database (requires installed MongoDB):
 npm run dev-db
 db.trackingEvents.find().sort({ timestamp: -1 }).pretty()
 ```
+
+## Resources
+
+* [New referrer policy for Chrome](https://developer.chrome.com/blog/referrer-policy-new-chrome-default/#:~:text=%23%20What%20does%20this%20change%20mean,the%20path%20and%20query%20string.)
+* [How to set referrer policy in HTML](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy#integration_with_html)
+* [How to restrict access to cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)
+* [HTTP Referer header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer)

@@ -3,7 +3,8 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { MongoClient } = require('mongodb');
 const uuid = require('uuid')
-const { get } = require('lodash')
+const { get } = require('lodash');
+const { reset } = require('nodemon');
 
 const port = 3000
 const app = express()
@@ -44,10 +45,30 @@ function logError(message, data = {}) {
   log(message, { ...data, level: 'error' })
 }
 
+function parseReferer(urlString) {
+  if (!urlString) return undefined
+  try {
+    const url = new URL(urlString)
+    return `${url.pathname}${url.search}`
+  } catch (err) {
+    logError('error thrown parsing referer', { urlString, error: err.stack })
+    // TODO: can we ever get a valid Referer that fails to parse?
+    return undefined
+  }
+}
+
 app.get('/track', async (req, res) => {
   // Log request
   const timestamp = new Date()
-  const url = req.get('Referer')
+  const referer = req.get('Referer')
+  const url = parseReferer(referer)
+  if (!url) {
+    const errorMessage = 'missing or invalid referer url'
+    logError(errorMessage, { url, referer })
+    res.status(400);
+    res.end(errorMessage)
+    return
+  }
   const requestUserId = get(req.cookies, COOKIE_NAME)
   const userId = requestUserId || uuid.v4()
   const firstRequest = !requestUserId
