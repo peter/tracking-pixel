@@ -36,11 +36,16 @@ function log(message, data = {}) {
   );
 }
 
+function logDebug(message, data = {}) {
+  log(message, { ...data, level: 'debug' })
+}
+
 function logError(message, data = {}) {
   log(message, { ...data, level: 'error' })
 }
 
-app.get('/tracking', (req, res) => {
+app.get('/track', async (req, res) => {
+  // Log request
   const timestamp = new Date()
   const url = req.get('Referer')
   const requestUserId = get(req.cookies, COOKIE_NAME)
@@ -50,7 +55,7 @@ app.get('/tracking', (req, res) => {
 
   // Save request in database
   try {
-    db.collection(COLLECTION_NAME).insertOne({ timestamp, url, userId })
+    await db.collection(COLLECTION_NAME).insertOne({ timestamp, url, userId })
   } catch (err) {
     logError('error thrown saving to db', { timestamp, url, userId });
   }
@@ -72,9 +77,25 @@ app.get('/tracking', (req, res) => {
   res.end(pixelImage)
 })
 
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/trackingEvents', async (req, res) => {
+    const query = {}
+    const options = { sort: { timestamp: -1 } }
+    const trackingEvents = await db.collection('trackingEvents').find(query, options).toArray()
+    res.json({ trackingEvents })
+  })
+}
+
 async function startServer() {
-  const client = new MongoClient(MONGO_URL)
-  log('connecting to database...', { MONGO_URL })
+  let mongoUrl = MONGO_URL
+  if (process.env.MONGODB_MEMORY_SERVER === 'true') {
+    const { MongoMemoryServer } = require('mongodb-memory-server')
+    log('starting mongodb-memory-server')
+    const mongod = await MongoMemoryServer.create();
+    mongoUrl = mongod.getUri();
+  }
+  const client = new MongoClient(mongoUrl)
+  log('connecting to database', { mongoUrl })
   await client.connect()
   db = client.db()
 
