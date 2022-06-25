@@ -4,10 +4,9 @@ A minimal implementation of a Node.js tracking pixel API with a MongoDB database
 
 ## TODO
 
-* CLI
-  MongoDB aggregations
 * Unit tests
 * End-to-end tests
+* CLI and CSV output
 * TypeScript?
 * What are the interesting considerations in this app?
 

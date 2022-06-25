@@ -3,9 +3,8 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { MongoClient } = require('mongodb');
 const uuid = require('uuid')
-const { get } = require('lodash');
+const { get, sortBy } = require('lodash');
 
-const port = 3000
 const app = express()
 let db
 
@@ -34,10 +33,6 @@ function log(message, data = {}) {
       level,
     })
   );
-}
-
-function logDebug(message, data = {}) {
-  log(message, { ...data, level: 'debug' })
 }
 
 function logError(message, data = {}) {
@@ -151,12 +146,13 @@ app.get('/trackingReport', async (req, res) => {
   ]
   log('generating tracking report', { pipeline })
   const report = await db.collection(COLLECTION_NAME).aggregate(pipeline, options).toArray()
+  const sortedReport = sortBy(report, (item) => item._id) // TODO: sort in db instead?
 
   // Send response
-  res.json({ timeRange, report })
+  res.json({ timeRange, report: sortedReport })
 })
 
-async function startServer() {
+async function startServer(port = 3000) {
   let mongoUrl = MONGO_URL
   if (process.env.MONGODB_MEMORY_SERVER === 'true') {
     const { MongoMemoryServer } = require('mongodb-memory-server')
@@ -172,6 +168,15 @@ async function startServer() {
   app.listen(port, () => {
     console.log(`tracking-pixel app listening on port ${port}`)
   })
+
+  return app
 }
 
-startServer()
+module.exports = {
+  parseReferer,
+  startServer,
+}
+
+if (require.main === module) {
+  startServer()
+}

@@ -12,7 +12,9 @@
     "dev": "NODE_ENV=development nodemon -r dotenv/config src/index.js",
     "dev-static": "http-server",
     "dev-db": "mongo 'mongodb://127.0.0.1:27017/tracking-pixel'",
-    "test": "NODE_ENV=test jest"
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "NODE_ENV=test jest test/unit",
+    "test:integration": "node test/integration/index.js"
   },
   "repository": {
     "type": "git",
@@ -34,6 +36,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "axios": "^0.27.2",
     "dotenv": "^16.0.1",
     "http-server": "^14.1.1",
     "jest": "^28.1.1",
