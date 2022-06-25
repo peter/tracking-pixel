@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"module": "commonjs",
+		"resolveJsonModule": true,
+		"rootDir": "src",
+		"lib": ["ES2021"],
+		"target": "ES2021",
+		"skipLibCheck": true,
+		"outDir": "./dist",
+		"noImplicitAny": false,
+		"allowJs": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"include": ["src/**/*.js", "src/**/*.ts"],
+	"exclude": ["node_modules"]
+}

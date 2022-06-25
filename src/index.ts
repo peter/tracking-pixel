@@ -17,8 +17,9 @@ const MONGO_URL = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/tracking-p
 const COOKIE_NAME = '_track'
 const PIXEL_IMAGE_BASE64 = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 const COLLECTION_NAME = 'trackingEvents'
+const REPORT_LIMIT = 100
 
-function log(message, data = {}) {
+function log(message, data: any = {}) {
   const LOG_LEVELS = ['debug', 'info', 'warning', 'error'];
   const level = data.level || 'info';
   if (!LOG_LEVELS.includes(level)) throw new Error(`invalid log level: ${level}`);
@@ -39,7 +40,7 @@ function logError(message, data = {}) {
   log(message, { ...data, level: 'error' })
 }
 
-function parseReferer(urlString) {
+function parseReferer(urlString: string): string | undefined {
   if (!urlString) return undefined
   try {
     const url = new URL(urlString)
@@ -105,7 +106,7 @@ app.get('/track', async (req, res) => {
 if (process.env.NODE_ENV !== 'production') {
   app.get('/trackingEvents', async (req, res) => {
     const query = {}
-    const options = { sort: { timestamp: -1 }, limit: 100 }
+    const options = { sort: { timestamp: -1 }, limit: REPORT_LIMIT }
     const trackingEvents = await db.collection('trackingEvents').find(query, options).toArray()
     res.json({ trackingEvents })
   })
@@ -114,7 +115,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.get('/trackingReport', async (req, res) => {
   // Parse date range
   const timeRangeKeys = ['from', 'to']
-  const timeRange = {}
+  const timeRange: any = {}
   for (const key of timeRangeKeys) {
     const dateString = req.query[key]
     const dateNumber = Date.parse(dateString) // an invalid date will yield NaN which is falsy
@@ -143,13 +144,14 @@ app.get('/trackingReport', async (req, res) => {
       pageViews: { $sum: '$count' },
       visitors: { $sum: 1 },
     }},
+    { $limit: REPORT_LIMIT },
+    { $sort: { pageViews: -1 } }
   ]
   log('generating tracking report', { pipeline })
   const report = await db.collection(COLLECTION_NAME).aggregate(pipeline, options).toArray()
-  const sortedReport = sortBy(report, (item) => item._id) // TODO: sort in db instead?
 
   // Send response
-  res.json({ timeRange, report: sortedReport })
+  res.json({ timeRange, report })
 })
 
 async function startServer(port = 3000) {

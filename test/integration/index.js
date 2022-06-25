@@ -1,4 +1,4 @@
-const { startServer } = require('../../src/index')
+const { startServer } = require('../../dist/index')
 const axios = require('axios')
 const assert = require('assert')
 const { ObjectId } = require("mongodb")
@@ -66,14 +66,14 @@ async function basicReportScenarioTest() {
   assert.strictEqual(response.status, 200)
   assert.deepStrictEqual(response.data.report, [
     {
-      _id: '/about.html',
-      pageViews: 1,
-      visitors: 1
-    },
-    {
       _id: '/contact.html',
       pageViews: 4,
       visitors: 3
+    },
+    {
+      _id: '/about.html',
+      pageViews: 1,
+      visitors: 1
     },
   ])
 }
