@@ -1,25 +1,26 @@
 # Tracking Pixel API
 
-A minimal implementation of a Node.js tracking pixel API with a MongoDB database. This API is not production ready, it's for learning purposes only.
+A minimal implementation of a Node.js tracking pixel API backed by a MongoDB database. This API is not production ready and is for learning/discussion purposes only.
 
 ## TODO
 
-* Unit tests
-* End-to-end tests
-* CLI and CSV output
-* TypeScript?
+* Express types
+* Double check code and README
 * What are the interesting considerations in this app?
 
-## Developer Setup
+## Developer Setup - Install Dependencies and Run Server
 
-Use correct Node versiona and install packages:
+Use correct Node version (see `.nvmrc`) and install packages:
 
 ```sh
 nvm use
+# Check you have the node version specified in .nvmrc
+node --version
+
 npm install
 ```
 
-To run with the in-memory database [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server):
+Run with the in-memory database [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server):
 
 ```sh
 MONGODB_MEMORY_SERVER=true npm run dev
@@ -37,6 +38,18 @@ For local development you can keep environment variables in `.env`:
 cp .env.example .env
 ```
 
+## Testing
+
+There are unit tests (`test:unit`) and integration tests (`test:integration`) and `npm test` will run both of them:
+
+```sh
+npm test
+```
+
+The integration tests will start the server with the `mongodb-memory-server` and make various HTTP requests against the API.
+
+## The Track Endpoint
+
 Getting the tracking pixel from the command line (with/without cookie):
 
 ```sh
@@ -48,27 +61,51 @@ curl -i -o - -H 'Referer: http://localhost:8080/test/contact.html' http://localh
 curl -i -o - -H 'Referer: http://localhost:8080/test/contact.html' --cookie "_track=ce3be6d4-cc1d-4375-89a6-7da37ae5646f" -o /dev/null http://localhost:3000/track
 ```
 
-Test HTML page:
+## The Tracking Report Endpoint
 
-```sh
-npm run dev-static
-open http://localhost:8080/test/about.html
-```
-
-Tracking report endpoint:
+The `/trackingReport` endpoint gives you number of `pageViews` and `visitors` by `url` for a given `from/to` time range. The result is sorted by `pageViews` in descending order with a limit of a 100 items.
 
 ```sh
 # Time range of one day
 curl "http://localhost:3000/trackingReport?from=2022-06-24&to=2022-06-25" | jq .
+
 # Time range of one minute
 curl "http://localhost:3000/trackingReport?from=2022-06-24T20:16:00.000Z&to=2022-06-24T20:17:00.000Z" | jq .
 ```
+
+## Tracking Report CLI
+
+There is a CLI script (built with the `Commander` package) you can use to get a CSV report from the `/trackingReport` endpoint (`--baseUrl` defaults to `http://localhost:3000`):
+
+```sh
+# Show usage
+./cli trackingReport --help
+
+# Get report from local server
+./cli trackingReport --from 2022-06-26 --to 2022-06-27
+
+# Get report from production server
+./cli trackingReport --from 2022-06-26 --to 2022-06-27 --baseUrl https://url.of.production.tracking.api
+```
+
+## Viewing In-Memory Database Data in Development
 
 Show listing of recent tracking events in the database (used to expose in-memory database data during development):
 
 ```sh
 curl http://localhost:3000/trackingEvents | jq .
 ```
+
+## Test HTML Pages
+
+There are two example HTML pages for local testing (requires having the server running with `npm run dev`):
+
+```sh
+npm run dev-static
+open http://localhost:8081/test/about.html
+```
+
+## Viewing Database Data with the MongoDB Console
 
 Checking tracking events directly in the database (requires installed MongoDB):
 

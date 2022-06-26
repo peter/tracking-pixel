@@ -11,10 +11,11 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "NODE_ENV=development nodemon -r dotenv/config src/index.ts",
+    "trackingReport": "./scripts/trackingReport",
     "dev-static": "http-server",
     "dev-db": "mongo 'mongodb://127.0.0.1:27017/tracking-pixel'",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "NODE_ENV=test jest test/unit",
+    "test:unit": "jest test/unit",
     "test:integration": "npm run build && node test/integration/index.js"
   },
   "repository": {
@@ -39,6 +40,8 @@
   "devDependencies": {
     "@types/jest": "^28.1.3",
     "axios": "^0.27.2",
+    "commander": "^9.3.0",
+    "csv-stringify": "^6.1.3",
     "dotenv": "^16.0.1",
     "http-server": "^14.1.1",
     "jest": "^28.1.1",

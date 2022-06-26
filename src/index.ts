@@ -144,8 +144,8 @@ app.get('/trackingReport', async (req, res) => {
       pageViews: { $sum: '$count' },
       visitors: { $sum: 1 },
     }},
+    { $sort: { pageViews: -1 } },
     { $limit: REPORT_LIMIT },
-    { $sort: { pageViews: -1 } }
   ]
   log('generating tracking report', { pipeline })
   const report = await db.collection(COLLECTION_NAME).aggregate(pipeline, options).toArray()
