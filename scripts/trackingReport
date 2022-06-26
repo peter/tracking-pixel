@@ -16,11 +16,12 @@ module.exports.command = new Command()
   .option('--baseUrl <baseUrl>', 'base URL of tracking API', 'http://localhost:3000')
 
 async function action({ from, to, baseUrl }) {
+  const url = `${baseUrl}/trackingReport`
   try {
-    const result = await axios.get(`${baseUrl}/trackingReport`, { params: { from, to } })
+    const result = await axios.get(url, { params: { from, to } })
     console.log(await csvStringify(result.data.report, { header: true }))
   } catch (error) {
-    console.log(`Error thrown invoking API at baseUrl=${baseUrl}`)
+    console.log(`Error thrown invoking API at ${url}`)
     if (error.stack) console.log(error.stack)
     if (error.response) {
       console.log(JSON.stringify({ statusCode: error.response.status, body: error.response.data }, null, 4))
