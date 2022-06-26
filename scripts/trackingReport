@@ -9,7 +9,7 @@ const csvStringify = promisify(_csvStringify.stringify)
 
 module.exports.command = new Command()
   .command('trackingReport')
-  .description('Get CSV report from /trackingReport endpoint')
+  .description('Get CSV report from /trackingReport endpoint (requires a running API)')
   .action(action)
   .requiredOption('--from <from>', 'from timestamp or date, i.e. 2022-06-24T20:16:00.000Z or 2022-06-24')
   .requiredOption('--to <to>', 'to timestamp or date, i.e. 2022-06-25T20:16:00.000Z or 2022-06-25')

@@ -8,7 +8,7 @@ A minimal implementation of a Node.js tracking pixel API backed by a MongoDB dat
 * Double check code and README
 * What are the interesting considerations in this app?
 
-## Developer Setup - Install Dependencies and Run Server
+## Developer Setup
 
 Use correct Node version (see `.nvmrc`) and install packages:
 
@@ -50,7 +50,7 @@ The integration tests will start the server with the `mongodb-memory-server` and
 
 ## The Track Endpoint
 
-Getting the tracking pixel from the command line (with/without cookie):
+The track endpoint will read the `url` from the `Referer` header and the `userId` from the `_track` cookie (if the cookie is not present then a `Set-Cookie` response header is issued) and store the request in the MongoDB database.
 
 ```sh
 # First visit without cookie:
@@ -63,7 +63,7 @@ curl -i -o - -H 'Referer: http://localhost:8080/test/contact.html' --cookie "_tr
 
 ## The Tracking Report Endpoint
 
-The `/trackingReport` endpoint gives you number of `pageViews` and `visitors` by `url` for a given `from/to` time range. The result is sorted by `pageViews` in descending order with a limit of a 100 items.
+The `/trackingReport` endpoint gives you number of `pageViews` and `visitors` by `url` for a given time range. The result is sorted by `pageViews` in descending order with a limit of a 100 items.
 
 ```sh
 # Time range of one day
@@ -90,7 +90,7 @@ There is a CLI script (built with the `Commander` package) you can use to get a 
 
 ## Viewing In-Memory Database Data in Development
 
-Show listing of recent tracking events in the database (used to expose in-memory database data during development):
+Show listing of recent tracking events in the database (intended for development only):
 
 ```sh
 curl http://localhost:3000/trackingEvents | jq .
@@ -107,7 +107,7 @@ open http://localhost:8081/test/about.html
 
 ## Viewing Database Data with the MongoDB Console
 
-Checking tracking events directly in the database (requires installed MongoDB):
+You can check tracking events directly in the database (requires installed MongoDB):
 
 ```sh
 npm run dev-db
