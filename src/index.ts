@@ -1,9 +1,9 @@
-const express = require('express')
-const cors = require('cors')
-const cookieParser = require('cookie-parser')
-const { MongoClient } = require('mongodb');
-const uuid = require('uuid')
-const { get, sortBy } = require('lodash');
+import express, { Request, Response } from 'express'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+import { MongoClient } from 'mongodb'
+import * as uuid from 'uuid'
+import { get } from 'lodash'
 
 const app = express()
 let db
@@ -40,12 +40,12 @@ function logError(message, data = {}) {
   log(message, { ...data, level: 'error' })
 }
 
-function parseReferer(urlString: string): string | undefined {
+export function parseReferer(urlString: string | undefined): string | undefined {
   if (!urlString) return undefined
   try {
     const url = new URL(urlString)
     return `${url.pathname}${url.search}`
-  } catch (err) {
+  } catch (err: any) {
     logError('error thrown parsing referer', { urlString, error: err.stack })
     // TODO: can we ever get a valid Referer that fails to parse?
     return undefined
@@ -59,7 +59,7 @@ function sendValidationError(res, message, debugInfo = {}) {
   res.json({ errors: [error] })
 }
 
-app.get('/track', async (req, res) => {
+app.get('/track', async (req: Request, res: Response) => {
   // Get referer and cookie and log request
   const timestamp = new Date()
   const referer = req.get('Referer')
@@ -104,7 +104,7 @@ app.get('/track', async (req, res) => {
 })
 
 if (process.env.NODE_ENV !== 'production') {
-  app.get('/trackingEvents', async (req, res) => {
+  app.get('/trackingEvents', async (req: Request, res: Response) => {
     const query = {}
     const options = { sort: { timestamp: -1 }, limit: REPORT_LIMIT }
     const trackingEvents = await db.collection('trackingEvents').find(query, options).toArray()
@@ -112,13 +112,13 @@ if (process.env.NODE_ENV !== 'production') {
   })
 }
 
-app.get('/trackingReport', async (req, res) => {
+app.get('/trackingReport', async (req: Request, res: Response) => {
   // Parse date range
   const timeRangeKeys = ['from', 'to']
   const timeRange: any = {}
   for (const key of timeRangeKeys) {
-    const dateString = req.query[key]
-    const dateNumber = Date.parse(dateString) // an invalid date will yield NaN which is falsy
+    const dateString = req.query[key] as string | undefined
+    const dateNumber = dateString && Date.parse(dateString) // an invalid date will yield NaN which is falsy
     if (!dateNumber) {
       sendValidationError(res, `missing or invalid time range query param`, { key, value: dateString })
       return
@@ -154,7 +154,7 @@ app.get('/trackingReport', async (req, res) => {
   res.json({ timeRange, report })
 })
 
-async function startServer(port = 3000) {
+export async function startServer(port = 3000) {
   let mongoUrl = MONGO_URL
   if (process.env.MONGODB_MEMORY_SERVER === 'true') {
     const { MongoMemoryServer } = require('mongodb-memory-server')
@@ -172,11 +172,6 @@ async function startServer(port = 3000) {
   })
 
   return app
-}
-
-module.exports = {
-  parseReferer,
-  startServer,
 }
 
 if (require.main === module) {
