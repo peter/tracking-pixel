@@ -1,16 +1,21 @@
 #!/usr/bin/env node
 
+const { Command } = require('commander');
 const axios = require('axios')
 const _csvStringify = require('csv-stringify')
 const { promisify } = require('util')
 
 const csvStringify = promisify(_csvStringify.stringify)
 
+module.exports.command = new Command()
+  .command('trackingReport')
+  .description('Get CSV report from /trackingReport endpoint')
+  .action(action)
+  .requiredOption('--from <from>', 'from timestamp or date, i.e. 2022-06-24T20:16:00.000Z or 2022-06-24')
+  .requiredOption('--to <to>', 'to timestamp or date, i.e. 2022-06-25T20:16:00.000Z or 2022-06-25')
+  .option('--baseUrl <baseUrl>', 'base URL of tracking API', 'http://localhost:3000')
+
 async function action({ from, to, baseUrl }) {
   const result = await axios.get(`${baseUrl}/trackingReport`, { params: { from, to } })
   console.log(await csvStringify(result.data.report, { header: true }))
-}
-
-module.exports = {
-  action,
 }
