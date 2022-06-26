@@ -1,10 +1,9 @@
 # Tracking Pixel API
 
-A minimal implementation of a Node.js tracking pixel API backed by a MongoDB database. This API is not production ready and is for learning/discussion purposes only.
+A minimal implementation of a Node.js tracking pixel API backed by a MongoDB database. This API is not production ready and is for learning purposes only.
 
 ## TODO
 
-* Express types
 * Double check code and README
 * What are the interesting considerations in this app?
 
