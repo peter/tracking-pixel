@@ -2,11 +2,6 @@
 
 A minimal implementation of a Node.js tracking pixel API backed by a MongoDB database. This API is not production ready and is for learning purposes only.
 
-## TODO
-
-* Double check code and README
-* What are the interesting considerations in this app?
-
 ## Developer Setup
 
 Use correct Node version (see `.nvmrc`) and install packages:
