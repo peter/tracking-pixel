@@ -96,7 +96,7 @@ There are two example HTML pages for local testing (requires having the server r
 
 ```sh
 npm run dev-static
-open http://localhost:8081/test/about.html
+open http://localhost:8080/test/about.html
 ```
 
 ## Viewing Database Data with the MongoDB Console
